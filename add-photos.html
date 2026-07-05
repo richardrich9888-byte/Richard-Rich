@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Add Founder Photos — Richard Rich</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#05070c;color:#f4f6fb;font-family:'Space Grotesk',sans-serif;min-height:100vh;display:grid;place-items:center;padding:30px}
+    .wrap{max-width:860px;width:100%;text-align:center}
+    h1{font-family:'Syne',sans-serif;font-size:clamp(26px,5vw,44px);margin-bottom:10px}
+    p.note{color:#9aa3b5;font-weight:300;margin-bottom:36px}
+    .zones{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px}
+    .zone{
+      border:2px dashed rgba(255,255,255,.25);border-radius:20px;padding:34px 20px;cursor:pointer;
+      background:rgba(255,255,255,.04);transition:.25s;position:relative;overflow:hidden;
+    }
+    .zone:hover,.zone.drag{border-color:#7fb2ff;background:rgba(127,178,255,.08)}
+    .zone h2{font-family:'Syne',sans-serif;font-size:22px;margin-bottom:6px}
+    .zone span{color:#9aa3b5;font-size:14px;font-weight:300}
+    .zone img{width:150px;aspect-ratio:4/5;object-fit:cover;border-radius:12px;margin:0 auto 16px;display:none;border:1px solid rgba(255,255,255,.25)}
+    .zone.done{border-style:solid;border-color:#7ce3b8}
+    .zone.done img{display:block}
+    .zone.done .hint{color:#7ce3b8}
+    input[type=file]{display:none}
+    .home{display:inline-block;margin-top:36px;padding:15px 34px;border-radius:100px;background:linear-gradient(140deg,#fff,#bcd0f5);color:#05070c;font-weight:600;text-decoration:none;font-family:'Syne',sans-serif}
+    .status{margin-top:18px;font-size:14px;color:#9aa3b5;min-height:20px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Add the founder photos</h1>
+    <p class="note">Drag each photo onto its box (or click a box to pick the file). They save straight into the site — no renaming needed.</p>
+    <div class="zones">
+      <div class="zone" id="zoneT">
+        <img id="prevT" alt="" />
+        <h2>Tayyab</h2>
+        <span class="hint">Drop the curly-hair photo here</span>
+        <input type="file" id="fileT" accept="image/*" />
+      </div>
+      <div class="zone" id="zoneA">
+        <img id="prevA" alt="" />
+        <h2>Abaidullah</h2>
+        <span class="hint">Drop the wavy-hair photo here</span>
+        <input type="file" id="fileA" accept="image/*" />
+      </div>
+    </div>
+    <div class="status" id="status"></div>
+    <a class="home" href="index.html">Open the site →</a>
+  </div>
+
+  <script>
+    'use strict';
+    const status = document.getElementById('status');
+
+    function wire(zoneId, fileId, prevId, saveName, label){
+      const zone = document.getElementById(zoneId);
+      const input = document.getElementById(fileId);
+      const prev = document.getElementById(prevId);
+
+      const upload = async (file) => {
+        if (!file || !file.type.startsWith('image/')){ status.textContent = 'That is not an image file.'; return; }
+        status.textContent = 'Saving ' + label + '…';
+        try{
+          const res = await fetch('/upload?name=' + saveName, { method:'POST', body:file });
+          if (!res.ok) throw new Error('bad response');
+          prev.src = URL.createObjectURL(file);
+          zone.classList.add('done');
+          zone.querySelector('.hint').textContent = 'Saved ✓';
+          status.textContent = label + ' saved! It is live on the site now.';
+        }catch(e){
+          status.textContent = 'Could not save ' + label + ' — make sure the site server is running.';
+        }
+      };
+
+      zone.addEventListener('click', () => input.click());
+      input.addEventListener('change', () => upload(input.files[0]));
+      zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag'); });
+      zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+      zone.addEventListener('drop', (e) => {
+        e.preventDefault(); zone.classList.remove('drag');
+        upload(e.dataTransfer.files[0]);
+      });
+    }
+
+    wire('zoneT','fileT','prevT','founder-tayyab.jpg','Tayyab');
+    wire('zoneA','fileA','prevA','founder-abaidullah.jpg','Abaidullah');
+  </script>
+</body>
+</html>

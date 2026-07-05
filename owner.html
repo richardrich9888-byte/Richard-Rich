@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/owner.css" />
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase.js"></script>
+</head>
+<body>
+  <canvas class="space" id="space"></canvas>
+  <div class="grid-overlay" aria-hidden="true"></div>
+  <div class="scanline" aria-hidden="true"></div>
+
+  <!-- ============ GATE (locked) ============ -->
+  <section class="gate" id="gate">
+    <div class="gate-panel">
+      <div class="gate-emblem">RR</div>
+      <p class="gate-kicker" id="gateKicker">RICHARD RICH · COMMAND CENTER</p>
+
+      <!-- STEP 1: credentials -->
+      <form class="gate-step" id="step1">
+        <h1 class="gate-title">Owner Access</h1>
+        <p class="gate-sub">Authorized personnel only.</p>
+        <div class="gate-field">
+          <label for="ownerEmail">Email</label>
+          <input id="ownerEmail" type="email" autocomplete="username" placeholder="you@email.com" required />
+        </div>
+        <div class="gate-field">
+          <label for="ownerPass">Password</label>
+          <input id="ownerPass" type="password" autocomplete="current-password" placeholder="••••••••" required />
+        </div>
+        <button class="gate-btn" id="step1Btn" type="submit"><span>Authenticate</span></button>
+        <p class="gate-error" id="err1"></p>
+      </form>
+
+      <!-- STEP 2: secret code -->
+      <form class="gate-step" id="step2" hidden>
+        <h1 class="gate-title">Secret Code</h1>
+        <p class="gate-sub">Second verification required.</p>
+        <div class="gate-field">
+          <label for="ownerCode">Access code</label>
+          <input id="ownerCode" type="password" autocomplete="off" placeholder="enter code" required />
+        </div>
+        <button class="gate-btn" id="step2Btn" type="submit"><span>Unlock</span></button>
+        <p class="gate-error" id="err2"></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- ============ DASHBOARD (unlocked) ============ -->
+  <section class="dash" id="dash" hidden>
+    <header class="dash-head">
+      <div class="dash-brand">
+        <span class="dash-emblem">RR</span>
+        <div>
+          <div class="dash-title">COMMAND CENTER</div>
+          <div class="dash-owner" id="dashOwner">—</div>
+        </div>
+      </div>
+      <div class="dash-actions">
+        <button class="ghost-btn" id="refreshBtn" title="Refresh">⟳ Refresh</button>
+        <button class="ghost-btn" id="logoutBtn">Log out</button>
+      </div>
+    </header>
+
+    <div class="dash-stats">
+      <div class="stat"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Total leads</div></div>
+      <div class="stat"><div class="stat-num" id="statNew">0</div><div class="stat-label">New</div></div>
+      <div class="stat"><div class="stat-num" id="statLatest">—</div><div class="stat-label">Latest</div></div>
+    </div>
+
+    <div class="dash-bar">
+      <h2 class="dash-h2">Client Files</h2>
+      <input class="search" id="search" type="search" placeholder="Search company, industry, email…" />
+    </div>
+
+    <div class="files" id="files"><!-- booking cards injected here --></div>
+    <div class="empty" id="empty" hidden>
+      <div class="empty-ring">◎</div>
+      <p>No client files yet. When someone books a meeting, their file appears here instantly.</p>
+    </div>
+  </section>
+
+  <!-- ============ FILE VIEWER (modal) ============ -->
+  <div class="viewer" id="viewer" hidden>
+    <div class="viewer-card" id="viewerCard">
+      <button class="viewer-close" id="viewerClose" aria-label="Close">✕</button>
+      <div class="viewer-tag">CLIENT FILE</div>
+      <h3 class="viewer-company" id="vCompany">—</h3>
+      <div class="viewer-meta" id="vMeta">—</div>
+      <div class="viewer-rows" id="vRows"></div>
+      <div class="viewer-foot">
+        <a class="viewer-mail" id="vMail" href="#">✉ Reply by email</a>
+        <button class="viewer-del" id="vDelete">Delete file</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/owner.js"></script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+/* ===================================================================
+   RICHARD RICH — AI Agency
+   Cinematic 3D scroll site. Pure CSS/JS, no build step.
+   =================================================================== */
+
+:root{
+  --bg:#000000;
+  --bg-2:#05070c;
+  --ink:#f4f6fb;
+  --ink-dim:#9aa3b5;
+  --line:rgba(255,255,255,.12);
+  --accent:#7fb2ff;
+  --accent-2:#a8ffe6;
+  --glass:rgba(255,255,255,.055);
+  --glass-strong:rgba(255,255,255,.10);
+  --shadow:0 40px 120px rgba(0,0,0,.65);
+  --edge: 22px;
+  --font-display:'Syne', sans-serif;
+  --font:'Space Grotesk', system-ui, sans-serif;
+}
+
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font);
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+::selection{background:var(--accent);color:#02040a}
+
+/* ---------- NAVBAR ---------- */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:60;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px clamp(18px,4vw,54px);
+  transition:background .4s ease, backdrop-filter .4s ease, padding .4s ease;
+}
+.nav.scrolled{
+  background:rgba(4,6,12,.55);
+  backdrop-filter:blur(18px) saturate(140%);
+  -webkit-backdrop-filter:blur(18px) saturate(140%);
+  border-bottom:1px solid var(--line);
+  padding-top:12px;padding-bottom:12px;
+}
+.brand{display:flex;align-items:center;gap:12px;font-family:var(--font-display);font-weight:800}
+.brand-mark{
+  display:grid;place-items:center;width:40px;height:40px;border-radius:12px;
+  background:linear-gradient(140deg,#e9eefc,#8fa9d6);
+  color:#05070c;font-family:var(--font-display);font-weight:800;font-size:15px;
+  letter-spacing:.5px;box-shadow:0 8px 30px rgba(143,169,214,.35);
+}
+.brand-text{font-size:19px;letter-spacing:.3px}
+.nav-right{display:flex;align-items:center;gap:14px}
+.gsi-slot{min-width:0}
+.user-chip{
+  display:flex;align-items:center;gap:9px;padding:6px 14px 6px 6px;cursor:pointer;
+  border:1px solid var(--line);border-radius:100px;background:var(--glass);
+  backdrop-filter:blur(10px);font-family:var(--font);transition:.25s;
+}
+.user-chip:hover{background:var(--glass-strong);border-color:rgba(255,255,255,.3)}
+.user-chip img{width:30px;height:30px;border-radius:50%;object-fit:cover}
+.user-chip span{font-size:14px;color:var(--ink)}
+/* clean single Google sign-in button */
+.gsi-fallback{
+  display:inline-flex;align-items:center;gap:10px;cursor:pointer;
+  border:1px solid var(--line);background:var(--glass);color:var(--ink);
+  font-family:var(--font);font-weight:500;font-size:14px;padding:10px 18px;border-radius:100px;
+  transition:.25s;backdrop-filter:blur(12px) saturate(140%);
+}
+.gsi-fallback:hover{background:var(--glass-strong);border-color:rgba(255,255,255,.32);transform:translateY(-1px)}
+.gsi-fallback svg{opacity:.95}
+
+/* ---------- PERSISTENT WORLD (fixed moonscape behind hero + deck) ---------- */
+.world{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+.world-moon{
+  position:absolute;inset:-6% -6% -6% -6%;
+  background:url('../assets/moon.jpg') center 42%/cover no-repeat;
+  transform:scale(1.14) translateZ(0);
+  will-change:transform;
+}
+.stars{position:absolute;inset:0;width:100%;height:100%;opacity:.9}
+.dust{position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen;opacity:.6}
+.world-glow{
+  position:absolute;left:50%;top:22%;transform:translate(-50%,-50%);
+  width:min(70vw,900px);height:min(70vw,900px);
+  background:radial-gradient(circle, rgba(150,190,255,.30), rgba(150,190,255,0) 62%);
+  filter:blur(10px);transition:background .8s ease;
+}
+/* readability veil that deepens toward the lower (card) region */
+.world-atmos{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(120% 80% at 50% 12%, rgba(0,0,0,0) 30%, rgba(0,0,0,.35) 100%),
+    linear-gradient(180deg, rgba(3,5,10,.15) 0%, rgba(3,5,10,.35) 45%, rgba(3,5,10,.62) 100%);
+}
+
+/* ---------- HERO ---------- */
+.hero{
+  position:relative;height:100svh;min-height:600px;width:100%;z-index:2;
+  overflow:visible;display:grid;place-items:center;
+  perspective:1400px;background:transparent;
+}
+.hero-content{position:relative;z-index:3;text-align:center;transform-style:preserve-3d;padding:0 20px;will-change:transform}
+.hero-kicker{
+  font-size:clamp(11px,1.6vw,15px);letter-spacing:.62em;color:var(--accent-2);
+  margin-bottom:clamp(14px,2vw,26px);text-indent:.62em;opacity:.9;
+}
+.hero-title{
+  font-family:var(--font-display);font-weight:800;line-height:.9;
+  font-size:clamp(58px,15vw,220px);letter-spacing:-.02em;
+  background:linear-gradient(180deg,#ffffff 25%,#c3d2f2 75%,#7f93bd);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 30px 80px rgba(0,0,0,.5);
+  filter:drop-shadow(0 10px 40px rgba(150,180,255,.25));
+}
+.hero-sub{
+  margin-top:clamp(16px,2.4vw,30px);font-size:clamp(15px,2.3vw,26px);
+  color:var(--ink-dim);font-weight:300;letter-spacing:.02em;
+}
+.scroll-hint{
+  position:absolute;left:50%;bottom:-24svh;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:12px;
+  color:var(--ink-dim);font-size:12px;letter-spacing:.28em;text-transform:uppercase;
+}
+.mouse{width:26px;height:42px;border:1.5px solid rgba(255,255,255,.4);border-radius:16px;position:relative}
+.mouse i{position:absolute;left:50%;top:8px;width:3px;height:8px;border-radius:3px;background:#fff;transform:translateX(-50%);animation:wheel 1.8s infinite}
+@keyframes wheel{0%{opacity:0;top:8px}40%{opacity:1}80%{opacity:0;top:22px}100%{opacity:0}}
+
+/* ---------- DECK (scroll-driven cards over the moonscape) ---------- */
+.deck{position:relative;background:transparent;z-index:2}
+.deck-pin{
+  position:relative;height:100svh;width:100%;overflow:hidden;
+  display:grid;place-items:center;perspective:1700px;
+  background:transparent;
+}
+.deck-stage{position:relative;width:min(92vw,720px);height:100%;transform-style:preserve-3d;display:grid;place-items:center}
+
+.card{
+  grid-area:1/1;                 /* stack every card in the same centered cell */
+  align-self:center;justify-self:center;
+  width:min(92vw,680px);
+  will-change:transform,opacity,filter;
+  transform-style:preserve-3d;backface-visibility:hidden;
+  opacity:0;
+}
+.card-inner{
+  position:relative;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  min-height:clamp(300px,44vh,420px);
+  padding:clamp(34px,5.5vw,70px);
+  border-radius:var(--edge);
+  border:1px solid rgba(255,255,255,.18);
+  /* Frosted glass that stays cheap to composite: a translucent dark-to-light
+     gradient reads as glass over the bright moon, with a light blur for depth.
+     (Heavy backdrop blur over a moving background was the scroll-jank culprit.) */
+  background:
+    linear-gradient(150deg, rgba(20,26,40,.55), rgba(12,16,26,.42) 45%, rgba(20,26,40,.55)),
+    linear-gradient(150deg, rgba(255,255,255,.14), rgba(255,255,255,.03) 42%, rgba(255,255,255,.02));
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  box-shadow:
+    var(--shadow),
+    0 0 0 1px rgba(255,255,255,.06),
+    inset 0 1px 0 rgba(255,255,255,.32),
+    inset 0 -1px 0 rgba(255,255,255,.06);
+  overflow:hidden;
+  transform:translateZ(0);   /* own compositor layer → smoother */
+}
+/* gradient hairline border for a crafted, high-res edge */
+.card-inner::after{
+  content:"";position:absolute;inset:0;border-radius:var(--edge);pointer-events:none;
+  padding:1px;
+  background:linear-gradient(140deg, rgba(255,255,255,.55), rgba(255,255,255,0) 30%, rgba(255,255,255,0) 70%, rgba(180,205,255,.35));
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;opacity:.6;
+}
+/* glossy top sheen */
+.card-inner::before{
+  content:"";position:absolute;left:0;right:0;top:0;height:48%;
+  background:linear-gradient(180deg, rgba(255,255,255,.16), transparent);
+  opacity:.75;pointer-events:none;
+}
+.card-index{
+  font-family:var(--font-display);font-weight:700;font-size:13px;letter-spacing:.42em;
+  color:var(--accent-2);opacity:.85;margin-bottom:20px;
+}
+.card-title{
+  font-family:var(--font-display);font-weight:800;line-height:1.02;
+  font-size:clamp(32px,6.2vw,62px);letter-spacing:-.015em;
+  background:linear-gradient(180deg,#ffffff,#cdd8f2);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  text-wrap:balance;
+}
+.card-body{margin-top:18px;font-size:clamp(16px,2.4vw,22px);color:var(--ink-dim);font-weight:300;line-height:1.5;text-wrap:balance}
+
+/* section-label style cards (Our process / Discover / Meeting...) */
+.card.type-step .card-inner{text-align:center}
+.card.type-step .step-num{
+  font-family:var(--font-display);font-weight:800;font-size:clamp(50px,12vw,110px);line-height:1;
+  background:linear-gradient(180deg,#dfe8ff,#6f86b8);-webkit-background-clip:text;background-clip:text;color:transparent;
+  opacity:.9;
+}
+.card.type-step .card-title{margin-top:6px;font-size:clamp(26px,5vw,46px)}
+
+/* profile cards */
+.profile{display:flex;flex-direction:column;align-items:center;text-align:center;gap:20px}
+.profile-photo{
+  width:clamp(150px,42vw,230px);aspect-ratio:4/5;border-radius:18px;overflow:hidden;
+  border:1px solid rgba(255,255,255,.22);box-shadow:0 24px 60px rgba(0,0,0,.55);
+  background:linear-gradient(160deg,#3a2a1c,#0f0b07);position:relative;
+}
+.profile-photo img{width:100%;height:100%;object-fit:cover}
+.profile-photo.no-photo::after{
+  content:attr(data-initial);position:absolute;inset:0;display:grid;place-items:center;
+  font-family:var(--font-display);font-weight:800;font-size:72px;color:rgba(255,255,255,.75);
+}
+.profile-name{font-family:var(--font-display);font-weight:800;font-size:clamp(26px,5vw,44px);color:#fff}
+.profile-role{font-size:14px;letter-spacing:.28em;text-transform:uppercase;color:var(--accent-2)}
+
+/* CTA card (card 15) */
+.card.type-cta .card-inner{text-align:center}
+.cta-btn{
+  display:inline-flex;align-items:center;gap:12px;margin-top:26px;cursor:pointer;
+  padding:18px 38px;border-radius:100px;border:1px solid rgba(255,255,255,.25);
+  font-family:var(--font-display);font-weight:700;font-size:clamp(15px,2.2vw,19px);letter-spacing:.01em;
+  color:#05070c;background:linear-gradient(140deg,#ffffff,#bcd0f5);
+  box-shadow:0 20px 60px rgba(150,180,255,.35);transition:transform .3s, box-shadow .3s;
+}
+.cta-btn:hover{transform:translateY(-3px) scale(1.02);box-shadow:0 28px 80px rgba(150,180,255,.5)}
+.cta-btn svg{width:20px;height:20px}
+
+/* contact (email-us) card */
+.contact-list{
+  list-style:none;margin:20px auto 8px;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:10px 26px;text-align:left;max-width:460px;width:100%;
+}
+.contact-list li{
+  position:relative;padding-left:22px;color:var(--ink);font-weight:300;
+  font-size:clamp(14px,2.1vw,17px);line-height:1.35;
+}
+.contact-list li::before{content:"→";position:absolute;left:0;color:var(--accent-2);font-weight:600}
+.contact-list li span{color:var(--ink-dim);font-size:.82em}
+.contact-mail{margin-top:24px;font-size:clamp(14px,2.2vw,18px);letter-spacing:.01em;word-break:break-all}
+.contact-mail svg{width:19px;height:19px;flex-shrink:0}
+
+/* progress dots */
+.deck-progress{
+  position:absolute;right:clamp(12px,3vw,34px);top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:9px;z-index:20;
+}
+.deck-progress .dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.22);transition:.3s}
+.deck-progress .dot.on{background:var(--accent-2);box-shadow:0 0 12px var(--accent-2);transform:scale(1.35)}
+
+/* ---------- FOOTER ---------- */
+.footer{position:relative;z-index:5;background:linear-gradient(180deg,#000,#05070c);border-top:1px solid var(--line);padding:clamp(50px,8vw,90px) 20px}
+.footer-inner{max-width:720px;margin:0 auto;text-align:center;display:flex;flex-direction:column;align-items:center;gap:16px}
+.footer-brand{display:flex;align-items:center;gap:12px;font-family:var(--font-display);font-weight:800;font-size:20px}
+.footer-tag{color:var(--ink-dim);font-weight:300;font-size:clamp(15px,2.5vw,20px)}
+.footer-mail{
+  font-size:clamp(16px,2.6vw,22px);color:#fff;border-bottom:1px solid rgba(255,255,255,.3);padding-bottom:3px;transition:.25s;
+}
+.footer-mail:hover{color:var(--accent-2);border-color:var(--accent-2)}
+.footer-copy{margin-top:10px;font-size:12px;color:rgba(255,255,255,.35);letter-spacing:.05em}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important}
+  html{scroll-behavior:auto}
+}
+
+/* ---------- small screens ---------- */
+@media (max-width:600px){
+  .brand-text{display:none}
+  .hero-kicker{letter-spacing:.42em}
+  .card-inner{padding:30px 24px}
+  .deck-progress{right:8px}
+}
