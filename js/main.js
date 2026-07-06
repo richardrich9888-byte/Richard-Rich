@@ -32,6 +32,10 @@ const CARDS = [
 const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => [...r.querySelectorAll(s)];
 const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* Phones/tablets get a lighter pipeline: no filter animations, no backdrop
+   blur (see CSS), 1x canvases — transforms + opacity only, which stay on the
+   GPU compositor and never drop frames. */
+const isMobile = window.matchMedia('(max-width:820px), (hover:none) and (pointer:coarse)').matches;
 
 document.addEventListener('DOMContentLoaded', () => {
   $('#year').textContent = new Date().getFullYear();
@@ -128,12 +132,12 @@ function initStars(){
   let w, h, stars, dpr;
 
   function resize(){
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    dpr = isMobile ? 1 : Math.min(window.devicePixelRatio || 1, 2);
     w = canvas.width  = innerWidth  * dpr;
     h = canvas.height = innerHeight * dpr;
     canvas.style.width = innerWidth + 'px';
     canvas.style.height = innerHeight + 'px';
-    const count = Math.min(220, Math.floor((innerWidth * innerHeight) / 9000));
+    const count = Math.min(isMobile ? 90 : 220, Math.floor((innerWidth * innerHeight) / (isMobile ? 14000 : 9000)));
     stars = Array.from({length:count}, () => ({
       x: Math.random()*w, y: Math.random()*h,
       z: Math.random()*0.8 + 0.2,
@@ -168,14 +172,21 @@ function initWorldParallax(){
   const moon = $('#worldMoon');
   if (!moon || prefersReduced) return;
 
-  window.addEventListener('pointermove', (e) => {
-    WORLD.mx = (e.clientX / innerWidth  - 0.5);
-    WORLD.my = (e.clientY / innerHeight - 0.5);
-  }, { passive:true });
+  if (!isMobile){
+    window.addEventListener('pointermove', (e) => {
+      WORLD.mx = (e.clientX / innerWidth  - 0.5);
+      WORLD.my = (e.clientY / innerHeight - 0.5);
+    }, { passive:true });
+  }
 
+  let lastZoom = -1;
   (function tick(){
     WORLD.cmx += (WORLD.mx - WORLD.cmx) * 0.05;
     WORLD.cmy += (WORLD.my - WORLD.cmy) * 0.05;
+    // on touch there's no mouse drift — only write the transform when the
+    // scroll dolly actually moved, so idle frames cost nothing
+    if (isMobile && Math.abs(WORLD.zoom - lastZoom) < 0.0005){ requestAnimationFrame(tick); return; }
+    lastZoom = WORLD.zoom;
     const scale = 1.14 + WORLD.zoom * 0.16;               // slow dolly-in through the deck
     const ty = -WORLD.zoom * 30;                          // drift downward as we descend
     moon.style.transform = `scale(${scale.toFixed(3)}) translate(${WORLD.cmx*-26}px, ${(WORLD.cmy*-18)+ty}px)`;
@@ -187,6 +198,8 @@ function initWorldParallax(){
 function initDust(){
   const canvas = $('#dust');
   if (!canvas) return;
+  // dust + mix-blend-mode costs a full-screen offscreen pass — skip it on mobile
+  if (isMobile){ canvas.style.display = 'none'; return; }
   const ctx = canvas.getContext('2d');
   let w, h, dpr, motes;
   function resize(){
@@ -236,9 +249,17 @@ function initDeckAnimation(){
   const dots  = $$('#deckProgress .dot');
   const n = cards.length;
 
+  /* Animating CSS filter (blur) repaints the whole card texture every frame —
+     fine on desktop GPUs, the main source of jank on phones. Mobile runs the
+     same choreography with transforms + opacity only. */
+  const fx = (props, blur) => {
+    if (!isMobile) props.filter = `blur(${blur}px)`;
+    return props;
+  };
+
   // initial state — all cards waiting far above the horizon, out of focus
-  gsap.set(cards, { yPercent:-150, z:-1050, rotationX:48, rotationY:-8, filter:'blur(14px)', opacity:0 });
-  gsap.set(cards[0], { yPercent:0, z:0, rotationX:0, rotationY:0, filter:'blur(0px)', opacity:1 }); // first is ready
+  gsap.set(cards, fx({ yPercent:-150, z:-1050, rotationX:48, rotationY:-8, opacity:0 }, 14));
+  gsap.set(cards[0], fx({ yPercent:0, z:0, rotationX:0, rotationY:0, opacity:1 }, 0)); // first is ready
 
   // scroll length: one "beat" per card
   const beats = n;               // number of card slots
@@ -251,6 +272,7 @@ function initDeckAnimation(){
                  '160,195,255','180,185,255','200,180,240','160,210,220','170,255,225'];
   const worldMoon = $('#worldMoon');
   const worldGlow = $('#worldGlow');
+  let lastActive = 0;
 
   const tl = gsap.timeline({
     scrollTrigger:{
@@ -262,15 +284,20 @@ function initDeckAnimation(){
       anticipatePin:1,
       onUpdate:(self) => {
         const active = Math.min(n-1, Math.floor(self.progress * n));
-        dots.forEach((d,i)=> d.classList.toggle('on', i===active));
         // dolly the moon deeper into the scene as the story unfolds
         WORLD.zoom = self.progress;
         if (prefersReduced && worldMoon){
           worldMoon.style.transform = `scale(${(1.14 + self.progress*0.16).toFixed(3)})`;
         }
-        if (worldGlow){
-          worldGlow.style.background =
-            `radial-gradient(circle, rgba(${GLOWS[active]},.30), rgba(${GLOWS[active]},0) 62%)`;
+        // dots + glow only need touching when the active card changes,
+        // not on every scroll frame
+        if (active !== lastActive){
+          lastActive = active;
+          dots.forEach((d,i)=> d.classList.toggle('on', i===active));
+          if (worldGlow){
+            worldGlow.style.background =
+              `radial-gradient(circle, rgba(${GLOWS[active]},.30), rgba(${GLOWS[active]},0) 62%)`;
+          }
         }
       }
     }
@@ -281,14 +308,14 @@ function initDeckAnimation(){
     // ENTER — descend from far above the moon horizon, blur into focus
     if (i > 0){
       tl.fromTo(card,
-        { yPercent:-150, z:-1050, rotationX:48, rotationY:-8, filter:'blur(14px)', opacity:0 },
-        { yPercent:0, z:0, rotationX:0, rotationY:0, filter:'blur(0px)', opacity:1, duration:perBeat*0.7, ease:'power2.inOut' },
+        fx({ yPercent:-150, z:-1050, rotationX:48, rotationY:-8, opacity:0 }, 14),
+        fx({ yPercent:0, z:0, rotationX:0, rotationY:0, opacity:1, duration:perBeat*0.7, ease:'power2.inOut' }, 0),
         at - 0.4);
     }
     // EXIT — sink away toward the surface (skip last card; it stays to the end)
     if (i < n-1){
       tl.to(card,
-        { yPercent:150, z:-620, rotationX:-30, rotationY:8, filter:'blur(9px)', opacity:0, duration:perBeat*0.7, ease:'power2.inOut' },
+        fx({ yPercent:150, z:-620, rotationX:-30, rotationY:8, opacity:0, duration:perBeat*0.7, ease:'power2.inOut' }, 9),
         at + 0.38);
     }
   });
