@@ -15,50 +15,131 @@
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
+
+  <!-- ============ CINEMATIC INTRO ============ -->
+  <div class="intro" id="intro">
+    <div class="intro-glow" aria-hidden="true"></div>
+    <div class="intro-inner">
+      <div class="intro-brand">Richard&nbsp;Rich</div>
+      <div class="intro-sweep" aria-hidden="true"></div>
+      <div class="intro-tag">AI · AUTOMATION · GROWTH</div>
+    </div>
+  </div>
+
   <!-- ============ NAVBAR ============ -->
   <header class="nav" id="nav">
-    <a class="brand" href="#top" aria-label="Richard Rich home">
+    <a class="brand" href="#hero" aria-label="Richard Rich home">
       <span class="brand-mark">RR</span>
       <span class="brand-text">Richard&nbsp;Rich</span>
     </a>
-    <div class="nav-right"></div>
+    <div class="nav-right">
+      <a class="glass-pill liquid-glass" href="#closing">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5 12 13l9-6.5"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg>
+        <span>Book a meeting</span>
+      </a>
+    </div>
   </header>
 
-  <!-- ============ PERSISTENT CINEMATIC WORLD (one continuous moonscape) ============ -->
-  <div class="world" aria-hidden="true">
-    <div class="world-moon" id="worldMoon"></div>
-    <canvas class="stars" id="stars"></canvas>
-    <canvas class="dust" id="dust"></canvas>
-    <div class="world-glow" id="worldGlow"></div>
-    <div class="world-atmos"></div>
-  </div>
+  <!-- ============ HERO (landing) ============ -->
+  <section class="hero reveal" id="hero">
+    <video class="bg-video" autoplay muted loop playsinline preload="auto" poster="assets/moon.jpg">
+      <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260406_094145_4a271a6c-3869-4f1c-8aa7-aeb0cb227994.mp4" type="video/mp4">
+    </video>
+    <div class="bottom-blur" aria-hidden="true"></div>
 
-  <span id="top"></span>
+    <div class="hero-content">
+      <div class="hero-kicker rise" style="--d:80ms">RICHARD RICH · AI AGENCY</div>
+      <h1 class="hero-title rise" style="--d:200ms">We transform businesses through&nbsp;AI</h1>
+      <p class="hero-sub rise" style="--d:340ms">It's not a deal — it's a partnership.</p>
+      <div class="hero-cta rise" style="--d:480ms">
+        <a class="btn-solid" href="#showcase">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          See our work
+        </a>
+        <a class="btn-glass liquid-glass" href="#closing">Book a meeting</a>
+      </div>
+    </div>
 
-  <!-- ============ CARDS — rise over the moonscape ============ -->
-  <section class="deck" id="deck">
-    <div class="deck-pin" id="deckPin">
-      <div class="deck-stage" id="deckStage"><!-- cards injected by JS --></div>
-      <div class="deck-progress" id="deckProgress" aria-hidden="true"></div>
+    <div class="scroll-hint rise" style="--d:700ms" aria-hidden="true">
+      <span>SCROLL</span>
+      <div class="mouse"><i></i></div>
     </div>
   </section>
 
-  <!-- ============ FOOTER ============ -->
-  <footer class="footer" id="footer">
-    <div class="footer-inner">
-      <div class="footer-brand">
-        <span class="brand-mark">RR</span>
-        <span>Richard Rich</span>
-      </div>
-      <p class="footer-tag">It's not a deal — it's a partnership.</p>
-      <a class="footer-mail" href="mailto:richardrich9888@gmail.com">richardrich9888@gmail.com</a>
-      <p class="footer-copy">© <span id="year"></span> Richard Rich. All rights reserved.</p>
+  <!-- ============ SHOWCASE (auto-playing 3D cards) ============ -->
+  <section class="showcase reveal" id="showcase">
+    <video class="bg-video" autoplay muted loop playsinline preload="auto" poster="assets/moon.jpg">
+      <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260328_065045_c44942da-53c6-4804-b734-f9e07fc22e08.mp4" type="video/mp4">
+    </video>
+    <div class="center-blur" aria-hidden="true"></div>
+
+    <div class="showcase-head rise" style="--d:60ms">
+      <span class="eyebrow">THE JOURNEY</span>
+      <h2>Everything we stand for</h2>
     </div>
-  </footer>
+
+    <div class="deck-stage" id="deckStage"><!-- cards injected by JS --></div>
+    <div class="deck-progress" id="deckProgress" aria-hidden="true"></div>
+  </section>
+
+  <!-- ============ CLOSING (contact + marquee) ============ -->
+  <section class="closing reveal" id="closing">
+    <video class="bg-video" autoplay muted loop playsinline preload="auto" poster="assets/moon.jpg">
+      <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260328_065045_c44942da-53c6-4804-b734-f9e07fc22e08.mp4" type="video/mp4">
+    </video>
+    <div class="center-blur big" aria-hidden="true"></div>
+
+    <div class="closing-content">
+      <span class="eyebrow rise" style="--d:60ms">LET'S TALK</span>
+      <h2 class="closing-title rise" style="--d:160ms">Let's build something <span class="grad">extraordinary</span></h2>
+      <p class="closing-sub rise" style="--d:280ms">To have a meeting with us, send these details to our Gmail:</p>
+
+      <ul class="contact-list rise" style="--d:400ms">
+        <li>Business name</li>
+        <li>Industry</li>
+        <li>Number of employees</li>
+        <li>Business problem</li>
+        <li>Your email</li>
+        <li>Contact number <span>(optional)</span></li>
+      </ul>
+
+      <a class="btn-glass liquid-glass mail rise" style="--d:520ms" href="mailto:richardrich9888@gmail.com">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6.5 12 13l9-6.5"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg>
+        richardrich9888@gmail.com
+      </a>
+    </div>
+
+    <!-- infinite service marquee -->
+    <div class="marquee rise" style="--d:640ms" aria-hidden="true">
+      <div class="marquee-track">
+        <span class="chip liquid-glass">AI Strategy</span>
+        <span class="chip liquid-glass">Automation</span>
+        <span class="chip liquid-glass">Custom Models</span>
+        <span class="chip liquid-glass">Chatbots</span>
+        <span class="chip liquid-glass">Data Pipelines</span>
+        <span class="chip liquid-glass">Integrations</span>
+        <span class="chip liquid-glass">Consulting</span>
+        <span class="chip liquid-glass">Growth</span>
+        <!-- duplicate for seamless loop -->
+        <span class="chip liquid-glass">AI Strategy</span>
+        <span class="chip liquid-glass">Automation</span>
+        <span class="chip liquid-glass">Custom Models</span>
+        <span class="chip liquid-glass">Chatbots</span>
+        <span class="chip liquid-glass">Data Pipelines</span>
+        <span class="chip liquid-glass">Integrations</span>
+        <span class="chip liquid-glass">Consulting</span>
+        <span class="chip liquid-glass">Growth</span>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-brand"><span class="brand-mark">RR</span><span>Richard Rich</span></div>
+      <p class="footer-copy">© <span id="year"></span> Richard Rich. All rights reserved.</p>
+    </footer>
+  </section>
 
   <!-- Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>
