@@ -130,18 +130,18 @@ function initReveals(){
   sections.forEach(s => { if (s.id !== 'hero') io.observe(s); });
 }
 
-/* ================= VIDEO play/pause (battery + perf) ================= */
+/* ================= VIDEO play/pause (battery + perf) =================
+   Videos pause when far off-screen to save battery, but we start them playing
+   a bit BEFORE they scroll into view (rootMargin) so a decoded frame is always
+   ready — no flash of the paused first frame when you arrive at a section. */
 function initVideos(){
   const vids = $$('.bg-video');
-  vids.forEach(v => { const p = v.play(); if (p && p.catch) p.catch(()=>{}); }); // nudge autoplay
+  const kick = (v) => { const p = v.play(); if (p && p.catch) p.catch(()=>{}); };
+  vids.forEach(kick);
   if (!('IntersectionObserver' in window)) return;
   const io = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      const v = e.target;
-      if (e.isIntersecting){ const p = v.play(); if (p && p.catch) p.catch(()=>{}); }
-      else v.pause();
-    });
-  }, { threshold:0.05 });
+    entries.forEach(e => { if (e.isIntersecting) kick(e.target); else e.target.pause(); });
+  }, { threshold:0, rootMargin:'80% 0px 80% 0px' });   // begin playback ~0.8 screens early
   vids.forEach(v => io.observe(v));
 }
 
