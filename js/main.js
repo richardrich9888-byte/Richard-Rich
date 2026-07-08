@@ -38,7 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initNav();
   initReveals();
   initVideos();
-  initHeroVideoFade();
   initShowcase();
   initSecretDoor();
 });
@@ -130,52 +129,59 @@ function initReveals(){
   sections.forEach(s => { if (s.id !== 'hero') io.observe(s); });
 }
 
-/* ================= VIDEO play/pause (battery + perf) =================
-   Videos pause when far off-screen to save battery, but we start them playing
-   a bit BEFORE they scroll into view (rootMargin) so a decoded frame is always
-   ready — no flash of the paused first frame when you arrive at a section. */
-function initVideos(){
-  const vids = $$('.bg-video');
-  const kick = (v) => { const p = v.play(); if (p && p.catch) p.catch(()=>{}); };
-  vids.forEach(kick);
-  if (!('IntersectionObserver' in window)) return;
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) kick(e.target); else e.target.pause(); });
-  }, { threshold:0, rootMargin:'80% 0px 80% 0px' });   // begin playback ~0.8 screens early
-  vids.forEach(v => io.observe(v));
-}
+/* ================= VIDEOS — bulletproof, never-black backgrounds =================
+   Each section has a designed CSS aurora gradient underneath (always painted).
+   The video sits on top starting at opacity 0 and is ONLY faded in while it is
+   genuinely playing with decoded frames. If a video is blocked, stalls, errors,
+   or a device refuses to decode it, opacity stays 0 and the gradient shows —
+   so the section can never go black. The hero also cross-fades its loop seam. */
+function kickVideo(v){ const p = v.play(); if (p && p.catch) p.catch(()=>{}); }
 
-/* ================= HERO video — smooth fade loop (buttery seams) =================
-   Native `loop` snaps hard at the seam. Instead we fade the video in over 0.5s,
-   fade it out over the last 0.5s, then restart from 0 after a 100ms beat — so
-   the loop is invisible. Runs on rAF only while the video is playing/on-screen. */
-function initHeroVideoFade(){
-  const v = $('#hero .bg-video');
-  if (!v) return;
-  if (prefersReduced){ v.loop = true; v.style.opacity = '1'; const p = v.play(); if (p && p.catch) p.catch(()=>{}); return; }
+function setupVideo(v){
+  const isHero = v.classList.contains('hero-video');
+  if (prefersReduced){ v.loop = true; v.style.opacity = '1'; kickVideo(v); return; }
+  if (isHero) v.loop = false;            // hero manages its own seam loop
 
-  v.loop = false;               // we manage the loop ourselves
   const FADE = 0.5;
   let raf = 0;
   const stop = () => { if (raf){ cancelAnimationFrame(raf); raf = 0; } };
   function frame(){
-    const d = v.duration || 0, t = v.currentTime;
-    let op = 1;
-    if (t < FADE) op = t / FADE;
-    else if (d && t > d - FADE) op = Math.max(0, (d - t) / FADE);
+    let op = 0;
+    // show the video only when it is actually playing with real frames ready
+    if (!v.paused && v.readyState >= 3){
+      op = 1;
+      if (isHero){
+        const d = v.duration || 0, t = v.currentTime;
+        if (t < FADE) op = t / FADE;
+        else if (d && t > d - FADE) op = Math.max(0, (d - t) / FADE);
+      }
+    }
     v.style.opacity = op.toFixed(3);
     raf = requestAnimationFrame(frame);
   }
-  v.addEventListener('play',  () => { stop(); frame(); });
-  v.addEventListener('pause', stop);
-  v.addEventListener('ended', () => {
+  const startLoop = () => { stop(); frame(); };
+  v.addEventListener('play',    startLoop);
+  v.addEventListener('playing', startLoop);
+  // when the video is not truly playing, reveal the gradient (never black)
+  ['pause','waiting','stalled','error'].forEach(ev =>
+    v.addEventListener(ev, () => { stop(); v.style.opacity = '0'; }));
+  v.addEventListener('ended', () => {              // hero: seamless restart
+    if (!isHero) return;
     stop(); v.style.opacity = '0';
-    setTimeout(() => { try{ v.currentTime = 0; }catch(e){} const p = v.play(); if (p && p.catch) p.catch(()=>{}); }, 100);
+    setTimeout(() => { try{ v.currentTime = 0; }catch(e){} kickVideo(v); }, 100);
   });
-  // if the external video can't load, reveal the element so its poster shows
-  v.addEventListener('error', () => { stop(); v.style.opacity = '1'; });
-  const p = v.play();
-  if (p && p.catch) p.catch(() => { v.style.opacity = '1'; });
+  kickVideo(v);
+}
+
+function initVideos(){
+  const vids = $$('.bg-video');
+  vids.forEach(setupVideo);
+  if (!('IntersectionObserver' in window)){ vids.forEach(kickVideo); return; }
+  // start playback ~0.8 screens early so a frame is ready before the section shows
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) kickVideo(e.target); else e.target.pause(); });
+  }, { threshold:0, rootMargin:'80% 0px 80% 0px' });
+  vids.forEach(v => io.observe(v));
 }
 
 /* ================= SHOWCASE — auto-playing 3D card loop =================
