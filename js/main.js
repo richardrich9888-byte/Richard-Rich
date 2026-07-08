@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initNav();
   initReveals();
   initVideos();
+  initHeroVideoFade();
   initShowcase();
   initSecretDoor();
 });
@@ -142,6 +143,39 @@ function initVideos(){
     });
   }, { threshold:0.05 });
   vids.forEach(v => io.observe(v));
+}
+
+/* ================= HERO video — smooth fade loop (buttery seams) =================
+   Native `loop` snaps hard at the seam. Instead we fade the video in over 0.5s,
+   fade it out over the last 0.5s, then restart from 0 after a 100ms beat — so
+   the loop is invisible. Runs on rAF only while the video is playing/on-screen. */
+function initHeroVideoFade(){
+  const v = $('#hero .bg-video');
+  if (!v) return;
+  if (prefersReduced){ v.loop = true; v.style.opacity = '1'; const p = v.play(); if (p && p.catch) p.catch(()=>{}); return; }
+
+  v.loop = false;               // we manage the loop ourselves
+  const FADE = 0.5;
+  let raf = 0;
+  const stop = () => { if (raf){ cancelAnimationFrame(raf); raf = 0; } };
+  function frame(){
+    const d = v.duration || 0, t = v.currentTime;
+    let op = 1;
+    if (t < FADE) op = t / FADE;
+    else if (d && t > d - FADE) op = Math.max(0, (d - t) / FADE);
+    v.style.opacity = op.toFixed(3);
+    raf = requestAnimationFrame(frame);
+  }
+  v.addEventListener('play',  () => { stop(); frame(); });
+  v.addEventListener('pause', stop);
+  v.addEventListener('ended', () => {
+    stop(); v.style.opacity = '0';
+    setTimeout(() => { try{ v.currentTime = 0; }catch(e){} const p = v.play(); if (p && p.catch) p.catch(()=>{}); }, 100);
+  });
+  // if the external video can't load, reveal the element so its poster shows
+  v.addEventListener('error', () => { stop(); v.style.opacity = '1'; });
+  const p = v.play();
+  if (p && p.catch) p.catch(() => { v.style.opacity = '1'; });
 }
 
 /* ================= SHOWCASE — auto-playing 3D card loop =================

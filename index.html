@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="css/style.css" />
 </head>
@@ -40,28 +41,21 @@
     </div>
   </header>
 
-  <!-- ============ HERO (landing) ============ -->
+  <!-- ============ HERO (minimal centered brand over video) ============ -->
   <section class="hero reveal" id="hero">
-    <video class="bg-video" autoplay muted loop playsinline preload="auto" poster="assets/moon.jpg">
-      <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260406_094145_4a271a6c-3869-4f1c-8aa7-aeb0cb227994.mp4" type="video/mp4">
+    <video class="bg-video hero-video" autoplay muted playsinline preload="auto" poster="assets/moon.jpg">
+      <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260328_065045_c44942da-53c6-4804-b734-f9e07fc22e08.mp4" type="video/mp4">
     </video>
-    <div class="bottom-blur" aria-hidden="true"></div>
+    <div class="center-blur" aria-hidden="true"></div>
 
-    <div class="hero-content">
-      <div class="hero-kicker rise" style="--d:80ms">RICHARD RICH · AI AGENCY</div>
-      <h1 class="hero-title rise" style="--d:200ms">We transform businesses through&nbsp;AI</h1>
-      <p class="hero-sub rise" style="--d:340ms">It's not a deal — it's a partnership.</p>
-      <div class="hero-cta rise" style="--d:480ms">
-        <a class="btn-solid" href="#showcase">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-          See our work
-        </a>
-        <a class="btn-glass liquid-glass" href="#closing">Book a meeting</a>
-      </div>
+    <div class="hero-center">
+      <h1 class="hero-mark">
+        <span class="hero-mark-l1 rise" style="--d:120ms">Richard</span>
+        <span class="hero-mark-l2 rise" style="--d:280ms">Rich</span>
+      </h1>
     </div>
 
-    <div class="scroll-hint rise" style="--d:700ms" aria-hidden="true">
-      <span>SCROLL</span>
+    <div class="scroll-hint rise" style="--d:560ms" aria-hidden="true">
       <div class="mouse"><i></i></div>
     </div>
   </section>
