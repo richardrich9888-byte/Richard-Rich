@@ -129,59 +129,32 @@ function initReveals(){
   sections.forEach(s => { if (s.id !== 'hero') io.observe(s); });
 }
 
-/* ================= VIDEOS — bulletproof, never-black backgrounds =================
-   Each section has a designed CSS aurora gradient underneath (always painted).
-   The video sits on top starting at opacity 0 and is ONLY faded in while it is
-   genuinely playing with decoded frames. If a video is blocked, stalls, errors,
-   or a device refuses to decode it, opacity stays 0 and the gradient shows —
-   so the section can never go black. The hero also cross-fades its loop seam. */
+/* ================= BACKGROUND WORLD VIDEO (single, always-on) =================
+   ONE fixed video behind the whole site. A single decoder plays reliably on
+   every device — multiple <video>s choke (especially on mobile), which was what
+   made the mid page lose its effects / go black. The aurora gradient sits behind
+   it and always shows; the video just fades in over it while genuinely playing,
+   and stays looping continuously across every section (no per-section restarts). */
 function kickVideo(v){ const p = v.play(); if (p && p.catch) p.catch(()=>{}); }
 
-function setupVideo(v){
-  const isHero = v.classList.contains('hero-video');
-  if (prefersReduced){ v.loop = true; v.style.opacity = '1'; kickVideo(v); return; }
-  if (isHero) v.loop = false;            // hero manages its own seam loop
-
-  const FADE = 0.5;
-  let raf = 0;
-  const stop = () => { if (raf){ cancelAnimationFrame(raf); raf = 0; } };
-  function frame(){
-    let op = 0;
-    // show the video only when it is actually playing with real frames ready
-    if (!v.paused && v.readyState >= 3){
-      op = 1;
-      if (isHero){
-        const d = v.duration || 0, t = v.currentTime;
-        if (t < FADE) op = t / FADE;
-        else if (d && t > d - FADE) op = Math.max(0, (d - t) / FADE);
-      }
-    }
-    v.style.opacity = op.toFixed(3);
-    raf = requestAnimationFrame(frame);
-  }
-  const startLoop = () => { stop(); frame(); };
-  v.addEventListener('play',    startLoop);
-  v.addEventListener('playing', startLoop);
-  // when the video is not truly playing, reveal the gradient (never black)
-  ['pause','waiting','stalled','error'].forEach(ev =>
-    v.addEventListener(ev, () => { stop(); v.style.opacity = '0'; }));
-  v.addEventListener('ended', () => {              // hero: seamless restart
-    if (!isHero) return;
-    stop(); v.style.opacity = '0';
-    setTimeout(() => { try{ v.currentTime = 0; }catch(e){} kickVideo(v); }, 100);
-  });
-  kickVideo(v);
-}
-
 function initVideos(){
-  const vids = $$('.bg-video');
-  vids.forEach(setupVideo);
-  if (!('IntersectionObserver' in window)){ vids.forEach(kickVideo); return; }
-  // start playback ~0.8 screens early so a frame is ready before the section shows
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) kickVideo(e.target); else e.target.pause(); });
-  }, { threshold:0, rootMargin:'80% 0px 80% 0px' });
-  vids.forEach(v => io.observe(v));
+  const v = $('.world-video');
+  if (!v) return;
+  if (prefersReduced) return;            // reduced motion: show the static aurora, no video
+  v.loop = true;
+
+  // fade the video in once it actually has frames (CSS transitions the opacity)
+  const reveal = () => { if (!v.paused && v.readyState >= 2) v.style.opacity = '1'; };
+  ['playing','canplay','loadeddata','timeupdate'].forEach(ev => v.addEventListener(ev, reveal));
+  v.addEventListener('error', () => { v.style.opacity = '0'; });   // fall back to aurora, never black
+
+  // keep it alive: if the browser ever pauses/stalls it (and the tab is visible), resume;
+  // and always resume when the user returns to the tab
+  const resume = () => { if (!document.hidden) kickVideo(v); };
+  ['pause','stalled','suspend'].forEach(ev => v.addEventListener(ev, resume));
+  document.addEventListener('visibilitychange', resume);
+
+  kickVideo(v);
 }
 
 /* ================= SHOWCASE — auto-playing 3D card loop =================

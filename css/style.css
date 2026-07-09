@@ -133,20 +133,31 @@ img,video{display:block;max-width:100%}
 .glass-pill:hover{transform:translateY(-1px)}
 @media (max-width:520px){ .glass-pill span{display:none} .glass-pill{padding:11px} }
 
-/* ---------- shared section chrome ---------- */
-/* Designed aurora background painted UNDER every video. Always renders, so a
-   section can never be black even if its video is blocked / fails to decode. */
-.hero, .showcase, .closing{
+/* ---------- FIXED BACKGROUND WORLD (one video for the whole site) ----------
+   ONE video decoder plays reliably on every device (multiple <video>s choke,
+   especially on mobile — that caused the mid-page "effects gone / black" bug).
+   The aurora gradient is always painted here; the video fades in over it only
+   while genuinely playing, so the background is continuous and never black. */
+.world{
+  position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;
   background:
     radial-gradient(115% 75% at 50% -6%, rgba(84,70,175,.32), transparent 60%),
     radial-gradient(92% 70% at 82% 108%, rgba(38,96,170,.26), transparent 55%),
     radial-gradient(82% 62% at 10% 98%, rgba(122,52,152,.20), transparent 55%),
     linear-gradient(180deg, #0b0922 0%, #06040f 55%, #0a0a1e 100%);
 }
-.bg-video{
+.world-video{
   position:absolute;inset:0;width:100%;height:100%;object-fit:cover;
-  z-index:0;background:transparent;opacity:0;will-change:opacity;
+  opacity:0;will-change:opacity;transition:opacity .6s ease;
 }
+.world-veil{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(120% 80% at 50% 6%, transparent 42%, rgba(6,4,15,.34) 100%),
+    linear-gradient(180deg, rgba(6,4,15,.28) 0%, rgba(6,4,15,.10) 42%, rgba(6,4,15,.40) 100%);
+}
+/* content sections are transparent and sit above the fixed world */
+.hero, .showcase, .closing{ position:relative; z-index:1; background:transparent; }
 .eyebrow{
   display:inline-block;font-family:var(--font-display);font-weight:700;
   font-size:12px;letter-spacing:.42em;color:var(--accent-2);opacity:.9;
@@ -179,7 +190,6 @@ img,video{display:block;max-width:100%}
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   padding:90px 18px;text-align:center;
 }
-.hero-video{opacity:0;will-change:opacity}
 .hero-center{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center}
 .hero-mark{
   font-family:var(--font-hero),var(--font-display);font-weight:500;
