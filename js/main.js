@@ -81,41 +81,46 @@ function initNav(){
   window.addEventListener('scroll', onScroll, { passive:true });
 }
 
-/* ================= BUILD CARDS ================= */
+/* ================= BUILD CARDS =================
+   The cards live in a single horizontal track that scrolls sideways forever.
+   The set is rendered twice back-to-back so the marquee can loop seamlessly. */
+function makeCard(c, i){
+  const card = document.createElement('article');
+  card.className = 'card type-' + c.type;
+  card.dataset.index = i;
+
+  const idxLabel = `<div class="card-index">${String(i+1).padStart(2,'0')} / ${CARDS.length}</div>`;
+  let inner;
+  if (c.type === 'profile'){
+    inner = `${idxLabel}
+      <div class="profile">
+        <div class="profile-photo" data-initial="${c.initial}">
+          <img src="${c.img}" alt="${c.name}" onerror="this.parentElement.classList.add('no-photo'); this.style.display='none';">
+        </div>
+        <div class="profile-name">${c.name}</div>
+        <div class="profile-role">${c.role}</div>
+      </div>`;
+  } else if (c.type === 'step'){
+    inner = `${idxLabel}<div class="step-num">${c.step}</div><h2 class="card-title">${c.title}</h2>`;
+  } else {
+    inner = `${idxLabel}<h2 class="card-title">${c.title}</h2>${c.body ? `<p class="card-body">${c.body}</p>` : ''}`;
+  }
+  card.innerHTML = `<div class="card-inner">${inner}</div>`;
+  return card;
+}
+
 function buildCards(){
   const stage = $('#deckStage');
-  const prog  = $('#deckProgress');
   if (!stage) return;
-  CARDS.forEach((c, i) => {
-    const card = document.createElement('article');
-    card.className = 'card type-' + c.type;
-    card.dataset.index = i;
-
-    const idxLabel = `<div class="card-index">${String(i+1).padStart(2,'0')} / ${CARDS.length}</div>`;
-    let inner;
-    if (c.type === 'profile'){
-      inner = `${idxLabel}
-        <div class="profile">
-          <div class="profile-photo" data-initial="${c.initial}">
-            <img src="${c.img}" alt="${c.name}" onerror="this.parentElement.classList.add('no-photo'); this.style.display='none';">
-          </div>
-          <div class="profile-name">${c.name}</div>
-          <div class="profile-role">${c.role}</div>
-        </div>`;
-    } else if (c.type === 'step'){
-      inner = `${idxLabel}<div class="step-num">${c.step}</div><h2 class="card-title">${c.title}</h2>`;
-    } else {
-      inner = `${idxLabel}<h2 class="card-title">${c.title}</h2>${c.body ? `<p class="card-body">${c.body}</p>` : ''}`;
-    }
-    card.innerHTML = `<div class="card-inner">${inner}</div>`;
-    stage.appendChild(card);
-
-    if (prog){
-      const dot = document.createElement('span');
-      dot.className = 'dot' + (i === 0 ? ' on' : '');
-      prog.appendChild(dot);
-    }
+  const track = document.createElement('div');
+  track.className = 'deck-track';
+  CARDS.forEach((c, i) => track.appendChild(makeCard(c, i)));                 // first set
+  CARDS.forEach((c, i) => {                                                    // duplicate (seamless loop)
+    const el = makeCard(c, i);
+    el.setAttribute('aria-hidden', 'true');
+    track.appendChild(el);
   });
+  stage.appendChild(track);
 }
 
 /* ================= REVEAL on scroll (blur-fade-up) ================= */
@@ -157,47 +162,27 @@ function initVideos(){
   kickVideo(v);
 }
 
-/* ================= SHOWCASE — auto-playing 3D card loop =================
-   No scroll needed: a GSAP timeline flies each card in, holds it, then sends
-   it away, looping forever. It only runs while the section is on screen. */
+/* ================= SHOWCASE — horizontal auto-scrolling card row =================
+   The cards move sideways as one continuous row (pure CSS transform marquee —
+   GPU-accelerated and buttery). JS only pauses the animation while the section
+   is off-screen to save work. Reduced-motion users get a static, hand-scrollable
+   row instead of movement. */
 function initShowcase(){
   const stage = $('#deckStage');
-  if (!stage) return;
-  const cards = $$('.card', stage);
-  const dots  = $$('#deckProgress .dot');
-  const n = cards.length;
-  if (!n) return;
+  const track = stage && stage.querySelector('.deck-track');
+  if (!track) return;
 
-  // graceful fallback if GSAP failed to load: just fade the cards in place
-  if (typeof gsap === 'undefined' || prefersReduced){
-    cards.forEach(c => { c.style.opacity = 1; });
+  if (prefersReduced){
+    track.style.animation = 'none';
+    stage.style.overflowX = 'auto';   // let them scroll the row themselves
     return;
   }
 
-  // filter (blur) is desktop-only — it's the main mobile jank source
-  const fx = (props, blur) => { if (!isMobile) props.filter = `blur(${blur}px)`; return props; };
-
-  gsap.set(cards, fx({ yPercent:-140, z:-1000, rotationX:46, rotationY:-8, opacity:0 }, 14));
-
-  const tl = gsap.timeline({ repeat:-1, paused:true });
-  cards.forEach((card, i) => {
-    tl.add(() => dots.forEach((d,k)=> d.classList.toggle('on', k===i)));
-    tl.fromTo(card,
-      fx({ yPercent:-140, z:-1000, rotationX:46, rotationY:-8, opacity:0 }, 14),
-      fx({ yPercent:0, z:0, rotationX:0, rotationY:0, opacity:1, duration:0.9, ease:'power3.out' }, 0));
-    tl.to(card,
-      fx({ yPercent:130, z:-560, rotationX:-26, rotationY:8, opacity:0, duration:0.8, ease:'power2.in' }, 9),
-      '+=1.5');   // hold the card centered before it leaves
-  });
-
-  // play only while the showcase is visible
   const section = $('#showcase');
   if ('IntersectionObserver' in window && section){
     const io = new IntersectionObserver((entries) => {
-      entries.forEach(e => e.isIntersecting ? tl.play() : tl.pause());
-    }, { threshold:0.25 });
+      entries.forEach(e => { track.style.animationPlayState = e.isIntersecting ? 'running' : 'paused'; });
+    }, { threshold:0 });
     io.observe(section);
-  } else {
-    tl.play();
   }
 }

@@ -210,25 +210,39 @@ img,video{display:block;max-width:100%}
 .mouse i{position:absolute;left:50%;top:7px;width:3px;height:7px;border-radius:3px;background:#fff;transform:translateX(-50%);animation:wheel 1.8s infinite}
 @keyframes wheel{0%{opacity:0;top:7px}40%{opacity:1}80%{opacity:0;top:20px}100%{opacity:0}}
 
-/* ---------- SHOWCASE (auto-play cards) ---------- */
+/* ---------- SHOWCASE (horizontal auto-scrolling card row) ---------- */
 .showcase{
   position:relative;min-height:100svh;width:100%;overflow:hidden;
-  display:flex;flex-direction:column;align-items:center;
-  padding:clamp(90px,14vh,140px) 16px clamp(40px,7vh,80px);
-  perspective:1700px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:clamp(90px,14vh,140px) 0 clamp(40px,7vh,80px);
 }
-.showcase-head{position:relative;z-index:10;text-align:center;margin-bottom:6px}
+.showcase-head{position:relative;z-index:10;text-align:center;margin-bottom:clamp(26px,4vh,46px);padding:0 16px}
 .showcase-head h2{font-family:var(--font-display);font-weight:800;font-size:clamp(24px,4.4vw,44px);letter-spacing:-.02em;margin-top:12px}
+/* viewport: fades the row edges so cards glide in and out softly */
 .deck-stage{
-  position:relative;z-index:10;flex:1;width:min(92vw,680px);
-  display:grid;place-items:center;transform-style:preserve-3d;
+  position:relative;z-index:10;width:100%;display:flex;align-items:center;overflow:hidden;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);
 }
-.card{
-  grid-area:1/1;align-self:center;justify-self:center;
-  width:min(92vw,660px);
-  will-change:transform,opacity,filter;
-  transform-style:preserve-3d;backface-visibility:hidden;opacity:0;
+/* the row itself — one GPU transform slides it sideways forever (buttery) */
+.deck-track{
+  display:flex;gap:clamp(16px,2.4vw,28px);width:max-content;padding:10px clamp(16px,2.4vw,28px);
+  animation:deckScroll 52s linear infinite;will-change:transform;
 }
+.deck-track:hover{animation-play-state:paused}   /* pause so a card can be read */
+@keyframes deckScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.card{ flex:none;width:clamp(270px,80vw,338px);height:clamp(384px,56vh,448px); }
+/* fit the same card style into the narrower row cards */
+.deck-track .card-inner{height:100%;min-height:0;padding:clamp(24px,3vw,34px);justify-content:center}
+.deck-track .card-index{margin-bottom:12px}
+.deck-track .card-title{font-size:clamp(22px,2.6vw,30px);overflow-wrap:break-word}
+.deck-track .card-body{font-size:clamp(14px,1.7vw,16px);margin-top:12px}
+.deck-track .card.type-step .step-num{font-size:clamp(44px,6.5vw,70px)}
+.deck-track .card.type-step .card-title{font-size:clamp(19px,2.2vw,24px)}
+.deck-track .profile{gap:12px}
+.deck-track .profile-photo{width:clamp(116px,30vw,146px)}
+.deck-track .profile-name{font-size:clamp(22px,3vw,28px)}
+.deck-track .profile-role{font-size:12px}
 .card-inner{
   position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;
   text-align:center;min-height:clamp(280px,42vh,400px);
